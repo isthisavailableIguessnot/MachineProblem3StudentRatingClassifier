@@ -1,11 +1,11 @@
-import pandas as pd
 import joblib
+import pandas as pd
 import streamlit as st
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 
 DATA_PATH = "augmented_balanced_dataset_m.csv"
+MODEL_PATH = "StudentPredictorV1.joblib"
 
 # column name -> (friendly label, help text), grouped for the form
 GROUPS = {
@@ -24,20 +24,34 @@ GROUPS = {
         "Delete.Actions": ("Items deleted", "Content the student deleted."),
     },
 }
-FEATURES = [f for g in GROUPS.values() for f in g]
+
+# IMPORTANT: this must be the exact column order the model was trained with (the notebook's order).
+FEATURES = [
+    "Submission.Actions",
+    "Quiz.Actions",
+    "Forum.Actions",
+    "Create.Actions",
+    "Read.Actions",
+    "Update.Actions",
+    "Delete.Actions",
+    "Days.Logged.In",
+]
+# Order used only for showing rows in tables and charts (follows the form groups)
+DISPLAY_ORDER = [f for g in GROUPS.values() for f in g]
 LABEL = {f: lbl for g in GROUPS.values() for f, (lbl, _) in g.items()}
 
 st.set_page_config(page_title="High or Low?", page_icon="🎓", layout="wide")
 
 
-@st.cache_resource(show_spinner="Training model (first load only)...")
+@st.cache_resource(show_spinner="Loading model...")
 def load_model():
     df = pd.read_csv(DATA_PATH)
     X, y = df[FEATURES], df["rating"]
-    X_train, X_test, y_train, y_test = train_test_split(
+    # same split as the notebook, so the accuracy shown is on held-out data
+    _, X_test, _, y_test = train_test_split(
         X, y, test_size=0.20, random_state=42, stratify=y
     )
-    model = joblib.load("StudentPredictorV1.joblib")
+    model = joblib.load(MODEL_PATH)
 
     y_pred = model.predict(X_test)
     metrics = {
@@ -52,7 +66,8 @@ def load_model():
         ),
     }
     importances = pd.Series(model.feature_importances_, index=FEATURES).sort_values()
-    # "typical" student for each class and overall (medians), used for presets and comparison
+
+    # "typical" student for each class and overall (medians), used for presets
     profiles = pd.DataFrame(
         {
             "High": df[df["rating"] == "High"][FEATURES].median(),
@@ -60,11 +75,11 @@ def load_model():
             "All": df[FEATURES].median(),
         }
     )
-    
+    # middle-50% ranges for the comparison table
     for grp in ["High", "Low"]:
         q = df[df["rating"] == grp][FEATURES].quantile([0.25, 0.75]).round().astype(int)
         profiles[f"{grp} range"] = [f"{q.loc[0.25, f]}–{q.loc[0.75, f]}" for f in FEATURES]
-    
+
     return model, metrics, importances, profiles
 
 
@@ -121,25 +136,29 @@ with tab_single:
                 st.success("### ✅ High engagement\nThis student looks on track.")
             st.progress(float(p_low), text=f"Chance of Low engagement: {p_low:.0%}")
             if 0.35 <= p_low <= 0.65:
-                st.caption("⚠️ Low confidence. Check this student's activity and recent trend before deciding on an action.")
+                st.caption(
+                    "⚠️ Low confidence. Check this student's activity and recent trend "
+                    "before deciding on an action."
+                )
 
         st.markdown("**How this student compares**")
         compare = pd.DataFrame(
-                {
-                    "This student": row.iloc[0].astype(int).astype(str),
-                    "Typical High (middle 50%)": profiles["High range"],
-                    "Typical Low (middle 50%)": profiles["Low range"],
-                }
-        ).loc[FEATURES]
+            {
+                "This student": row.iloc[0].astype(int).astype(str),
+                "Typical High (middle 50%)": profiles["High range"],
+                "Typical Low (middle 50%)": profiles["Low range"],
+            }
+        ).loc[DISPLAY_ORDER]
         compare.index = [LABEL[f] for f in compare.index]
         st.dataframe(compare, width="stretch")
+        st.caption("Ranges show where the middle half of High and Low rated students fall.")
 
 # ---------- Batch prediction ----------
 with tab_batch:
     st.subheader("Upload weekly activity logs")
     st.write(
         "Upload a CSV with one row per student. Required columns: "
-        + ", ".join(f"`{f}`" for f in FEATURES)
+        + ", ".join(f"`{f}`" for f in DISPLAY_ORDER)
         + ". Extra columns (like a student ID) are kept."
     )
     up = st.file_uploader("CSV file", type="csv")
@@ -159,7 +178,9 @@ with tab_batch:
             st.dataframe(
                 batch,
                 width="stretch",
-                column_config={"P(Low)": st.column_config.ProgressColumn("P(Low)", min_value=0, max_value=1)},
+                column_config={
+                    "P(Low)": st.column_config.ProgressColumn("P(Low)", min_value=0, max_value=1)
+                },
             )
             st.download_button(
                 "Download results", batch.to_csv(index=False).encode(), "predictions.csv", "text/csv"
