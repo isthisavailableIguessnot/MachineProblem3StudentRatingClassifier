@@ -10,7 +10,7 @@ MODEL_PATH = "StudentPredictorV1.joblib"
 # column name -> (friendly label, help text), grouped for the form
 GROUPS = {
     "📅 Attendance": {
-        "Days.Logged.In": ("Days logged in", "Number of different days the student logged in."),
+        "Days.Logged.In": ("Days logged in", "Number of different days the student logged into the LMS."),
     },
     "📖 Learning activity": {
         "Read.Actions": ("Reading actions", "Times the student viewed course materials."),
@@ -95,11 +95,10 @@ def apply_preset(name):
     for f in FEATURES:
         st.session_state[f] = int(profiles.loc[f, name])
 
-
-st.title("🎓 High or Low?: Early Student Engagement Monitor")
+st.title("🎓 High or Low?: Student Rating Predictor")
 st.caption(
-    "Enter a student's recent LMS activity to see whether their engagement looks High or Low. "
-    "Use it to decide who to check in with, not as a final judgment."
+    "Enter a student's midterm-stage LMS activity to predict whether their rating is High or Low. "
+    "Use it to decide who may need additional support, not as a final judgment."
 )
 
 tab_single, tab_batch, tab_model = st.tabs(["Single student", "Batch (CSV)", "Model info"])
@@ -131,10 +130,10 @@ with tab_single:
 
         with st.container(border=True):
             if p_low >= 0.5:
-                st.error("### ⚠️ Low engagement\nThis student may need a check-in.")
+                st.error("### ⚠️ Low rating\nThis student may need a check-in.")
             else:
-                st.success("### ✅ High engagement\nThis student looks on track.")
-            st.progress(float(p_low), text=f"Chance of Low engagement: {p_low:.0%}")
+                st.success("### ✅ High rating\nThis student looks on track.")
+            st.progress(float(p_low), text=f"Chance of Low rating: {p_low:.0%}")
             if 0.35 <= p_low <= 0.65:
                 st.caption(
                     "⚠️ Low confidence. Check this student's activity and recent trend "
