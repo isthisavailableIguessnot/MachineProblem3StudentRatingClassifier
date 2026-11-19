@@ -104,6 +104,7 @@ st.caption(
 
 
 # ---------- Single prediction ----------
+st.header("1. Single Student Prediction")
 
 left, right = st.columns([3, 2], gap="large")
 
@@ -152,7 +153,10 @@ with right:
     st.dataframe(compare, width="stretch")
     st.caption("Ranges show where the middle half of High and Low rated students fall.")
 
+st.divider()
+
 # ---------- Batch prediction ----------
+st.header("2. Batch Student Prediction")
 
 st.subheader("Upload weekly activity logs")
 st.write(
@@ -184,8 +188,12 @@ if up:
         st.download_button(
             "Download results", batch.to_csv(index=False).encode(), "predictions.csv", "text/csv"
         )
+        
+st.divider()
 
 # ---------- Model info ----------
+
+st.header("3. Model Performance")
 
 st.subheader("How well does the model work?")
 st.metric("Accuracy on held-out test data", f"{metrics['accuracy']:.1%}")
