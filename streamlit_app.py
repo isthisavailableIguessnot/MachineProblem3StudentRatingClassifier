@@ -100,7 +100,7 @@ def apply_preset(name):
 st.title("🎓High or Low?: Student Rating Predictor")
 st.caption(
     "Enter a student's LMS activity to predict whether their rating is going to be High or Low. "
-    "This tool is for identifying students who may need additional support, NOT as a final judgment." 
+    "\nThis tool is for identifying students who may need additional support, NOT a final judgment of their performance." 
 )
 
 tab_single, tab_batch, tab_model = st.tabs(["Single student", "Batch (CSV)", "Model info"])
