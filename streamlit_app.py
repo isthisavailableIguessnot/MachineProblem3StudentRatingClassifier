@@ -97,10 +97,10 @@ def apply_preset(name):
     for f in FEATURES:
         st.session_state[f] = int(profiles.loc[f, name])
 
-st.title("🎓 High or Low?: Student Rating Predictor")
+st.title("🎓High or Low?: Student Rating Predictor")
 st.caption(
-    "Enter a student's midterm-stage LMS activity to predict whether their rating is High or Low. "
-    "Use it to decide who may need additional support, not as a final judgment."
+    "Enter a student's LMS activity to predict whether their rating is going to be High or Low. "
+    "This tool is for identifying students who may need additional support, NOT as a final judgment." 
 )
 
 tab_single, tab_batch, tab_model = st.tabs(["Single student", "Batch (CSV)", "Model info"])
