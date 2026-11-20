@@ -97,7 +97,7 @@ def apply_preset(name):
     for f in FEATURES:
         st.session_state[f] = int(profiles.loc[f, name])
 
-st.title("🎓High or Low?: Student Rating Predictor")
+st.title("High or Low?: Student Rating Predictor")
 st.caption(
     "Enter a student's LMS activity to predict whether their rating is going to be High or Low. "
     "This tool is for identifying students who may need additional support, NOT a final judgment of their performance." 
@@ -160,7 +160,7 @@ with tab_predict:
 # ---------- Model info ----------
 with tab_model:
     st.subheader("How well does the model work?")
-    st.metric("Accuracy on held-out test data", f"{metrics['accuracy']:.1%}")
+    st.metric("Accuracy on held-out test data", f"{metrics['accuracy']:.2%}")
     c1, c2 = st.columns(2)
     with c1:
         st.write("**Confusion matrix** (rows are the truth, columns are the prediction)")
@@ -168,7 +168,7 @@ with tab_model:
         st.write("**Classification report**")
         st.dataframe(metrics["report"].round(2))
     with c2:
-        st.write("**Which activities matter most to the model**")
+        st.write("**Which activities has the most impact on the model's prediction?**")
         imp = importances.copy()
         imp.index = [LABEL[f] for f in imp.index]
         st.bar_chart(imp, horizontal=True)
