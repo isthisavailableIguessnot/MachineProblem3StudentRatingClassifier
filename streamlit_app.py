@@ -42,7 +42,7 @@ FEATURES = [
 DISPLAY_ORDER = [f for g in GROUPS.values() for f in g]
 LABEL = {f: lbl for g in GROUPS.values() for f, (lbl, _) in g.items()}
 
-st.set_page_config(page_title="High or Low?", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="Student Rating Predictor", layout="wide")
 
 
 @st.cache_resource(show_spinner="Loading model...")
