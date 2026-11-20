@@ -103,7 +103,7 @@ st.caption(
     "This tool is for identifying students who may need additional support, NOT a final judgment of their performance." 
 )
 
-tab_single, tab_batch, tab_model = st.tabs(["Single student", "Batch (CSV)", "Model info"])
+tab_predict, tab_model = st.tabs(["Predict", "Model info"])
 
 # ---------- Single prediction ----------
 with tab_single:
@@ -155,38 +155,8 @@ with tab_single:
         st.caption("Ranges show where the middle half of High and Low rated students fall.")
 
 # ---------- Batch prediction ----------
-with tab_batch:
-    st.subheader("Upload weekly activity logs")
-    st.write(
-        "Upload a CSV with one row per student. Required columns: "
-        + ", ".join(f"`{f}`" for f in DISPLAY_ORDER)
-        + ". Extra columns (like a student ID) are kept."
-    )
-    up = st.file_uploader("CSV file", type="csv")
-    if up:
-        batch = pd.read_csv(up)
-        missing = [c for c in FEATURES if c not in batch.columns]
-        if missing:
-            st.error(f"Missing columns: {missing}")
-        else:
-            batch["Prediction"] = model.predict(batch[FEATURES])
-            batch["P(Low)"] = model.predict_proba(batch[FEATURES])[:, classes.index("Low")]
-            batch = batch.sort_values("P(Low)", ascending=False)
-            n_low = int((batch["Prediction"] == "Low").sum())
-            m1, m2 = st.columns(2)
-            m1.metric("Students", len(batch))
-            m2.metric("Flagged as Low", n_low)
-            st.dataframe(
-                batch,
-                width="stretch",
-                column_config={
-                    "P(Low)": st.column_config.ProgressColumn("P(Low)", min_value=0, max_value=1)
-                },
-            )
-            st.download_button(
-                "Download results", batch.to_csv(index=False).encode(), "predictions.csv", "text/csv"
-            )
-
+#
+#
 # ---------- Model info ----------
 with tab_model:
     st.subheader("How well does the model work?")
