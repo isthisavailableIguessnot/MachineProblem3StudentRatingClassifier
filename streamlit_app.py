@@ -106,7 +106,7 @@ st.caption(
 tab_predict, tab_model = st.tabs(["Predict", "Model info"])
 
 # ---------- Single prediction ----------
-with tab_single:
+with tab_predict:
     left, right = st.columns([3, 2], gap="large")
 
     with left:
